@@ -153,16 +153,31 @@ func proxyHandler(c *gin.Context) {
 	}
 	defer resp.Body.Close()
 
-	// 6. 复制响应 Header
+	// 6. 读取响应体以便记录日志
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to read response body"})
+		return
+	}
+
+	// 7. 记录响应日志
+	logger.Info("response sent",
+		zap.String("pub_id", pubID),
+		zap.String("target_url", targetURL),
+		zap.Int("status_code", resp.StatusCode),
+		zap.ByteString("response_body", respBody),
+	)
+
+	// 8. 复制响应 Header
 	for key, values := range resp.Header {
 		for _, value := range values {
 			c.Header(key, value)
 		}
 	}
 
-	// 7. 设置相同的 Status Code
+	// 9. 设置相同的 Status Code
 	c.Status(resp.StatusCode)
 
-	// 8. 将接口 A 的响应体原样返回
-	io.Copy(c.Writer, resp.Body)
+	// 10. 将接口 A 的响应体原样返回
+	c.Writer.Write(respBody)
 }
