@@ -91,6 +91,7 @@ func main() {
 	})
 	// 接口 B：接收请求，转发到接口 A
 	r.POST("/api/v1/rta/network", proxyHandler)
+	r.POST("/api/v1/rta/report", proxyHandler)
 
 	// 启动服务
 	r.Run(":8080") // 可以修改端口
