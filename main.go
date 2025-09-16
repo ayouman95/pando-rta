@@ -13,10 +13,11 @@ import (
 )
 
 const (
-	TargetAPI  = "https://growth-rta.tiktokv-us.com/api/v1/rta/network"
-	LogFile    = "./logs/api.log" // 所有日志写入这个文件，lumberjack 负责滚动
-	MaxSize    = 100              // 每个日志文件最大 100MB
-	MaxBackups = 10               // 最多保留 10 个备份文件
+	TargetAPINetwork = "https://growth-rta.tiktokv-us.com/api/v1/rta/network"
+	TargetAPIReport  = "https://growth-rta.tiktokv-us.com/api/v1/rta/report"
+	LogFile          = "./logs/api.log" // 所有日志写入这个文件，lumberjack 负责滚动
+	MaxSize          = 100              // 每个日志文件最大 100MB
+	MaxBackups       = 10               // 最多保留 10 个备份文件
 )
 
 // 初始化日志（每天一个文件，使用 lumberjack 滚动）
@@ -54,7 +55,7 @@ func main() {
 	initLogger()
 	defer logger.Sync() // 确保日志刷写
 
-	r := gin.Default()
+	r := gin.New()
 
 	// 健康检查接口 —— 极简，无依赖，无日志
 	r.GET("/hc", func(c *gin.Context) {
@@ -118,7 +119,16 @@ func proxyHandler(c *gin.Context) {
 	_ = c.Request.Body.Close()
 
 	// 3. 构造转发到接口 A 的请求
-	req, err := http.NewRequestWithContext(c.Request.Context(), "POST", TargetAPI, bytes.NewBuffer(body))
+	var targetURL string
+	if c.Request.URL.Path == "/api/v1/rta/network" {
+		targetURL = TargetAPINetwork
+	} else if c.Request.URL.Path == "/api/v1/rta/report" {
+		targetURL = TargetAPIReport
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported endpoint"})
+		return
+	}
+	req, err := http.NewRequestWithContext(c.Request.Context(), "POST", targetURL, bytes.NewBuffer(body))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "rta request failed"})
 		return
