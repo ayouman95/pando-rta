@@ -16,8 +16,8 @@ const (
 	TargetAPINetwork = "https://growth-rta.tiktokv-us.com/api/v1/rta/network"
 	TargetAPIReport  = "https://growth-rta.tiktokv-us.com/api/v1/rta/report"
 	LogFile          = "./logs/api.log" // 所有日志写入这个文件，lumberjack 负责滚动
-	MaxSize          = 100              // 每个日志文件最大 100MB
-	MaxBackups       = 10               // 最多保留 10 个备份文件
+	MaxSize          = 1000             // 每个日志文件最大 100MB
+	MaxBackups       = 4000             // 最多保留 10 个备份文件
 )
 
 // 初始化日志（每天一个文件，使用 lumberjack 滚动）
