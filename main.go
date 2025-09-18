@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"pando-rta/config"
 	"strings"
 )
 
@@ -51,6 +52,7 @@ func initLogger() {
 
 	logger = zap.New(core)
 }
+
 func main() {
 	initLogger()
 	defer logger.Sync() // 确保日志刷写
@@ -105,8 +107,7 @@ func proxyHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "missing pub_id"})
 		return
 	}
-	// TODO 判断pub_id是否合法
-	if pubID != "NovaBeyond" && pubID != "ByteMedia" && pubID != "FlyFunAds" && pubID != "PinkTomato" {
+	if !config.GetConfig().IsValidPubID(pubID) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid pub_id"})
 		return
 	}
